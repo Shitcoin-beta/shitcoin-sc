@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#  shitcoind The shitcoin core server.
+#
+#
+# chkconfig: 345 80 20
+# description: shitcoind
+# processname: shitcoind
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/shitcoind, see below
+if [ -f /etc/sysconfig/shitcoind ]; then
+        . /etc/sysconfig/shitcoind
+fi
+
+RETVAL=0
+
+prog=shitcoind
+# you can override the lockfile via SHITCOIND_LOCKFILE in /etc/sysconfig/shitcoind
+lockfile=${SHITCOIND_LOCKFILE-/var/lock/subsys/shitcoind}
+
+# shitcoind defaults to /usr/bin/shitcoind, override with SHITCOIND_BIN
+shitcoind=${SHITCOIND_BIN-/usr/bin/shitcoind}
+
+# shitcoind opts default to -disablewallet, override with SHITCOIND_OPTS
+shitcoind_opts=${SHITCOIND_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $shitcoind $shitcoind_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
